@@ -541,6 +541,27 @@ def run_dream(wd, pars_df, parallel, rep, ngs):
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
 
+def run_dream02(wd, pars_df, parallel, rep, ngs):
+    os.chdir(wd)
+    parallel = "mpc"
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, pars_df, parallel=parallel)
+        # temp_dir=temp_dir
+    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
+
+    # Select number of maximum allowed repetitions
+    sampler = spotpy.algorithms.sceua(spot_setup, dbname="SCEUA_hymod", dbformat="csv", parallel='mpc')
+    # Start the sampler, one can specify ngs, kstop, peps and pcento id desired
+    sampler.sample(rep, ngs=ngs, kstop=3, peps=0.1, pcento=0.1)
+    spotpy.database
+    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
+    # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
+
+
+
+
 
 def run_fast(wd, pars_df, parallel, rep):
     os.chdir(wd)
@@ -555,7 +576,6 @@ def run_fast(wd, pars_df, parallel, rep):
     # Select number of maximum allowed repetitions
     sampler = spotpy.algorithms.fast(spot_setup, dbname="FAST_hymod", dbformat="csv", parallel='mpc')
     sampler.sample(rep)
-
 
 
 def get_cali_date():
@@ -610,7 +630,7 @@ def obs_masked():
     return obd_list
 
 
-def demo_cali(wd, params):
+def demo_cali(wd, params, rep, nChains):
     os.chdir(wd)
     parallel = "mpc"
     # df_fix = pd.read_csv('dc_fix.parms.csv')
@@ -624,11 +644,11 @@ def demo_cali(wd, params):
         # temp_dir=temp_dir
 
     # Select number of maximum repetitions
-    rep = 1000
+    rep = rep
 
     # Select seven chains and set the Gelman-Rubin convergence limit
     delta = 3
-    nChains = 10
+    nChains = nChains
     convergence_limit = 1.2
 
     # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
@@ -639,7 +659,7 @@ def demo_cali(wd, params):
     acceptance_test_option = 6
 
     sampler = spotpy.algorithms.dream(
-        spot_setup, dbname="DREAM_dc_bias", dbformat="csv", parallel=parallel
+        spot_setup, dbname="DREAM_dc_bias", dbformat="ram", parallel=parallel
     )
     r_hat = sampler.sample(
         rep,
@@ -652,5 +672,6 @@ def demo_cali(wd, params):
         runs_after_convergence,
         acceptance_test_option,
     )
-
+    results = pd.DataFrame(sampler.getdata())
+    results.to_csv('testest.csv')
     print(os.getcwd())

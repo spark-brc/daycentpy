@@ -399,8 +399,8 @@ class dc_cali_setup(object):
         os.chdir(self.wd + call)
         try:
             os.write(1, "text\n".encode())
-            # self.update_dc_pars(parameters)
-            cpars = self.update_dc_pars(parameters)
+            self.update_dc_pars(parameters)
+            # cpars = self.update_dc_pars(parameters)
             # model run
             with open("DayCentRUN.DAT", "r") as f:
                 data = [x.strip().split() for x in f]
@@ -471,9 +471,9 @@ class dc_cali_setup(object):
         if self.parallel == "mpi" or self.parallel == "mpc":
             remove_tree(self.wd + call)
 
-        obj_val = self.objf(tot_df)
-        self.saving_results(obj_val, cpars, sim_list)
-        print(sim_list)
+        # obj_val = self.objf(tot_df)
+        # self.saving_results(obj_val, cpars, sim_list)
+        # print(sim_list)
         return sim_list
     
 
@@ -541,7 +541,23 @@ def run_dream(wd, pars_df, parallel, rep, ngs):
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
 
-    
+
+def run_fast(wd, pars_df, parallel, rep):
+    os.chdir(wd)
+    parallel = "mpc"
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, pars_df, parallel=parallel)
+        # temp_dir=temp_dir
+    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
+
+    # Select number of maximum allowed repetitions
+    sampler = spotpy.algorithms.fast(spot_setup, dbname="FAST_hymod", dbformat="csv", parallel='mpc')
+    sampler.sample(rep)
+
+
+
 def get_cali_date():
     data_run_file = "DayCentRUN.DAT"
     with open(data_run_file, "r") as f:

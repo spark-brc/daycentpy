@@ -559,10 +559,6 @@ def run_dream02(wd, pars_df, parallel, rep, ngs):
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
 
-
-
-
-
 def run_fast(wd, pars_df, parallel, rep):
     os.chdir(wd)
     parallel = "mpc"
@@ -675,3 +671,48 @@ def demo_cali(wd, params, rep, nChains):
     results = pd.DataFrame(sampler.getdata())
     results.to_csv('testest.csv')
     print(os.getcwd())
+
+
+def demo_cali_sql(wd, params, rep, nChains):
+    os.chdir(wd)
+    parallel = "mpc"
+    # df_fix = pd.read_csv('dc_fix.parms.csv')
+    # df_site = pd.read_csv('dc_site.parms.csv')
+    # param_defs = pd.concat([df_fix, df_site], axis=0)
+
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, params, parallel=parallel)
+        # temp_dir=temp_dir
+
+    # Select number of maximum repetitions
+    rep = rep
+
+    # Select seven chains and set the Gelman-Rubin convergence limit
+    delta = 3
+    nChains = nChains
+    convergence_limit = 1.2
+
+    # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
+    c = 0.1
+    nCr = 3
+    eps = 10e-6
+    runs_after_convergence = 2
+    acceptance_test_option = 6
+
+    sampler = spotpy.algorithms.dream(
+        spot_setup, dbname="DREAM_dc_bias", dbformat="sql", parallel=parallel
+    )
+    r_hat = sampler.sample(
+        rep,
+        nChains,
+        nCr,
+        delta,
+        c,
+        eps,
+        convergence_limit,
+        runs_after_convergence,
+        acceptance_test_option,
+    )
+

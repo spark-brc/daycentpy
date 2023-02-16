@@ -674,6 +674,7 @@ def demo_cali(wd, params, rep, nChains):
 
 
 def demo_cali_sql(wd, params, rep, nChains):
+    # for sql
     os.chdir(wd)
     parallel = "mpc"
     # df_fix = pd.read_csv('dc_fix.parms.csv')

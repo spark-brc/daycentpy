@@ -7,10 +7,6 @@ from spotpy.objectivefunctions import rmse
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
 
-
-
-
-
 def run_fast(
         wd, pars_df, rep, 
         dbname="DREAM_daycent", dbformat="csv", parallel='seq', obj_func=None):
@@ -36,6 +32,7 @@ def run_dream(
     obs_m = obs_masked()
     # spot_setup = single_setup(GausianLike)
 
+    # Bayesian algorithms should be run with a likelihood function
     obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
     spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
@@ -50,12 +47,8 @@ def run_dream(
     runs_after_convergence = 100
     acceptance_test_option = 6
 
-    # Bayesian algorithms should be run with a likelihood function
-    bayesian_likelihood_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
-
     sampler = spotpy.algorithms.dream(
-        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,
-        obj_func=bayesian_likelihood_func)
+        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel)
     r_hat = sampler.sample(
         rep,
         nChains,
@@ -69,13 +62,13 @@ def run_dream(
     )
     if dbformat == 'ram':
         results = pd.DataFrame(sampler.getdata())
+        results.to_csv(f"{dbname}.csv", index=False)
         #########################################################
         # Example plot to show the convergence #################
-        spotpy.analyser.plot_gelman_rubin(results, r_hat, fig_name="DREAM_r_hat.png")
+        results02 = spotpy.analyser.load_csv_results(f"{dbname}")
+        spotpy.analyser.plot_gelman_rubin(results02, r_hat, fig_name="DREAM_r_hat.png")
         ########################################################
-        results.to_csv(f"{dbname}.csv", index=False)
-
-
+        
 def run_sceua(wd, pars_df, rep, ngs=7, parallel='seq'):
     os.chdir(wd)
     obs_m = obs_masked()

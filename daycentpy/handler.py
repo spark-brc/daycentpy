@@ -58,37 +58,6 @@ class DCinit(object):
         print("    Open the file and select parameters you are goint to use ..., ")
         print("    then save it as 'seleted_pars.csv'.")
 
-        # cwd = Path(os.getcwd())
-
-        # p_dir = cwd.parent.absolute()
-        # print(p_dir)
-        # main_dir = os.path.join(p_dir, cali_dir)
-        # # copy your model to main cali folder
-        # if os.path.exists(main_dir):
-        #     try:
-        #         shutil.rmtree(main_dir, onerror=self._remove_readonly)
-        #     except Exception as e:
-        #         raise Exception("unable to remove existing worker dir:" + \
-        #                         "{0}\n{1}".format(main_dir,str(e)))
-        # else:
-        #     try:
-        #         # os.mkdir(main_dir)
-        #         shutil.copytree(model_dir,main_dir)
-        #         print("model dir copied to main ...")
-        #     except Exception as e:
-        #         raise Exception("unable to copy files from model dir: " + \
-        #                         "{0} to main worker dir: {1}\n{2}".format(model_dir,main_dir,str(e)))
-        # os.chdir(main_dir)
-        # org_par_file = "daycent_pars.csv"
-        # suffix = ' passed'
-        # if os.path.exists(org_par_file):
-        #     print("    We found DayCent parameter base file.")
-        # else:
-        #     shutil.copy2(os.path.join(database_path, org_par_file), os.path.join(main_dir, org_par_file))
-        #     print(f"    '{org_par_file}' file copiped ..." + colored(suffix, 'green'))
-        # print("    Open the file and select parameters you are goint to use ..., ")
-        # print("    then save it as 'seleted_pars.csv'.")
-
     def _remove_readonly(self, func, path, excinfo):
         """remove readonly dirs, apparently only a windows issue
         add to all rmtree calls: shutil.rmtree(**,onerror=remove_readonly), wk"""
@@ -298,61 +267,6 @@ class dc_cali_setup(object):
         self.update_soc_soms_vals(dc_parms)
         return cpars
 
-        
-                
-    # # Simulation function must not return values besides for which evaluation values/observed data are available
-    # def simulation(self, parameters):
-    #     self.update_dc_parms(parameters)
-    #     # model run
-    #     with open("DayCentRUN.DAT", "r") as f:
-    #         data = [x.strip().split() for x in f]
-    #     print('')
-    #     print('  Simulation start ...')
-    #     for i in range(len(data)):
-    #         if os.path.isfile(data[i][1]+".bin"):
-    #             os.remove(data[i][1]+".bin")
-
-    #         # os.system("start /wait cmd /c {command}")
-    #         comline = 'DD17centEVI.exe -s {} -n {} -e {}'.format(data[i][1], data[i][1], data[i][3])
-    #         # os.system("start cmd {}/k".format(comline))
-    #         run_model = subprocess.Popen(comline, cwd=".", stdout=subprocess.DEVNULL)
-    #         run_model.wait()
-    #         comline2 = 'DD17list100.exe {} {} {}'.format(data[i][1], data[i][1], 'outvars.txt')
-    #         # os.system("start cmd {}".format(comline2))
-    #         extract_model = subprocess.Popen(comline2, cwd=".", stdout=subprocess.DEVNULL)
-    #         extract_model.wait()
-    #     print('')
-    #     print('  Simulation complete ...')
-    #     print('')
-    #     print('  extracting simulation outputs ...')
-    #     # get all sims
-    #     sim_df = pd.DataFrame()
-    #     for i in range(len(data)):
-    #         outf = data[i][1]+".lis"
-    #         df = pd.read_csv( outf, sep=r'\s+', skiprows=1)
-    #         df_sel = df.loc[(df['time']>=1971.08) & (df['time']<=1994.00)]
-    #         df_sel.index = pd.date_range(start='1/1/1971', periods=len(df_sel), freq='M')
-    #         dfa = df_sel.loc[:, ['somsc']].resample('A').mean()
-    #         dfa.index = dfa.index.year
-    #         dfa.rename(columns = {'somsc':'somsc_'+data[i][1][8:]}, inplace = True)
-    #         sim_df = pd.concat([sim_df, dfa], axis=1)
-            
-    #     # get all obds
-    #     obd_f = "soc_obd.csv"
-    #     obd_df = pd.read_csv(obd_f).set_index('Year')  
-    #     obd_df.replace(-999, np.nan, inplace=True)
-
-    #     # filter only for calibration
-    #     tot_df = pd.DataFrame()
-    #     for col in sim_df.columns:
-    #         tt =  pd.concat([sim_df.loc[:, col], obd_df.loc[:, col]], axis=1).dropna(axis=0)
-    #         tt.columns = ['sim', 'obd']
-    #         tt['name'] = col
-    #         tot_df = pd.concat([tot_df, tt], axis=0)
-
-    #     sim_list = tot_df.loc[:, 'sim'].tolist()
-    #     print('  extracting simulation outputs ... passed')
-    #     return sim_list
 
     # get info from *.sch file
     def get_start_end_years(self, model_name):
@@ -523,57 +437,6 @@ class dc_cali_setup(object):
                 inf.write(",".join(map(str, data)) + "\n")
         # os.remove(os.path.join(self.wd, lockfile))
 
-def run_dream(wd, pars_df, parallel, rep, ngs):
-    os.chdir(wd)
-    parallel = "mpc"
-    obs_m = obs_masked()
-    # spot_setup = spot_setup(GausianLike)
-    spot_setup = dc_cali_setup(
-        wd, obs_m, pars_df, parallel=parallel)
-        # temp_dir=temp_dir
-    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
-
-    # Select number of maximum allowed repetitions
-    sampler = spotpy.algorithms.sceua(spot_setup, dbname="SCEUA_hymod", dbformat="csv", parallel='mpc')
-    # Start the sampler, one can specify ngs, kstop, peps and pcento id desired
-    sampler.sample(rep, ngs=ngs, kstop=3, peps=0.1, pcento=0.1)
-
-    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
-    # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
-
-def run_dream02(wd, pars_df, parallel, rep, ngs):
-    os.chdir(wd)
-    parallel = "mpc"
-    obs_m = obs_masked()
-    # spot_setup = spot_setup(GausianLike)
-    spot_setup = dc_cali_setup(
-        wd, obs_m, pars_df, parallel=parallel)
-        # temp_dir=temp_dir
-    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
-
-    # Select number of maximum allowed repetitions
-    sampler = spotpy.algorithms.sceua(spot_setup, dbname="SCEUA_hymod", dbformat="csv", parallel='mpc')
-    # Start the sampler, one can specify ngs, kstop, peps and pcento id desired
-    sampler.sample(rep, ngs=ngs, kstop=3, peps=0.1, pcento=0.1)
-    spotpy.database
-    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
-    # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
-
-def run_fast(wd, pars_df, parallel, rep):
-    os.chdir(wd)
-    parallel = "mpc"
-    obs_m = obs_masked()
-    # spot_setup = spot_setup(GausianLike)
-    spot_setup = dc_cali_setup(
-        wd, obs_m, pars_df, parallel=parallel)
-        # temp_dir=temp_dir
-    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
-
-    # Select number of maximum allowed repetitions
-    sampler = spotpy.algorithms.fast(spot_setup, dbname="FAST_hymod", dbformat="csv", parallel='mpc')
-    sampler.sample(rep)
-
-
 def get_cali_date():
     data_run_file = "DayCentRUN.DAT"
     with open(data_run_file, "r") as f:
@@ -717,3 +580,35 @@ def demo_cali_sql(wd, params, rep, nChains):
         acceptance_test_option,
     )
 
+def run_dream(wd, pars_df, parallel, rep, ngs):
+    os.chdir(wd)
+    parallel = "mpc"
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, pars_df, parallel=parallel)
+        # temp_dir=temp_dir
+    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
+
+    # Select number of maximum allowed repetitions
+    sampler = spotpy.algorithms.sceua(spot_setup, dbname="SCEUA_hymod", dbformat="csv", parallel='mpc')
+    # Start the sampler, one can specify ngs, kstop, peps and pcento id desired
+    sampler.sample(rep, ngs=ngs, kstop=3, peps=0.1, pcento=0.1)
+
+    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
+    # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
+
+
+def run_fast(wd, pars_df, parallel, rep):
+    os.chdir(wd)
+    parallel = "mpc"
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, pars_df, parallel=parallel)
+        # temp_dir=temp_dir
+    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
+
+    # Select number of maximum allowed repetitions
+    sampler = spotpy.algorithms.fast(spot_setup, dbname="FAST_hymod", dbformat="csv", parallel='mpc')
+    sampler.sample(rep)

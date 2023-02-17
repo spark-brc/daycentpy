@@ -7,7 +7,7 @@ import subprocess
 import shutil
 from spotpy.objectivefunctions import rmse
 
-class model_setup(object):
+class single_setup(object):
     def __init__(
         self, wd, observed_data, pars_df, parallel="seq", obj_func=None
         ):

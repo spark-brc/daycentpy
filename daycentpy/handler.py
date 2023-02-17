@@ -20,7 +20,7 @@ cali_dir = "main"
 multi_cali_dir = "multi_main"
 
 
-class DCinit(object):
+class SingleInit(object):
     def __init__(self, proj_dir, model_dir):
 
         if not os.path.exists(proj_dir):

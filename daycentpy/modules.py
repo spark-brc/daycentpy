@@ -2,7 +2,7 @@ import os
 import spotpy
 import pandas as pd
 import numpy as np
-from daycentpy.model import model_setup
+from daycentpy.models import single_setup
 from spotpy.objectivefunctions import rmse
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
@@ -14,7 +14,7 @@ def run_fast(
     os.chdir(wd)
     obs_m = obs_masked()
     # spot_setup = spot_setup(GausianLike)
-    spot_setup = model_setup(
+    spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
         # temp_dir=temp_dir
     # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
@@ -31,8 +31,8 @@ def run_dream(
         dbname="DREAM_daycent", dbformat="csv", parallel='seq', obj_func=None):
     os.chdir(wd)
     obs_m = obs_masked()
-    # spot_setup = model_setup(GausianLike)
-    spot_setup = model_setup(
+    # spot_setup = single_setup(GausianLike)
+    spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
     # spot_setup = spot_setup(GausianLike)
 
@@ -61,12 +61,16 @@ def run_dream(
         runs_after_convergence,
         acceptance_test_option,
     )
+    if dbformat == 'ram':
+        results = pd.DataFrame(sampler.getdata())
+        results.to_csv(f"{dbname}.csv", index=False)
+
 
 def run_sceua(wd, pars_df, rep, ngs, parallel='seq'):
     os.chdir(wd)
     obs_m = obs_masked()
     # spot_setup = spot_setup(GausianLike)
-    spot_setup = model_setup(
+    spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel)
         # temp_dir=temp_dir
     # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
@@ -78,9 +82,6 @@ def run_sceua(wd, pars_df, rep, ngs, parallel='seq'):
 
     # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
     # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
-
-
-
 
 
 

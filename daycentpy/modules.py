@@ -8,6 +8,9 @@ from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
 
 
+
+
+
 def run_fast(
         wd, pars_df, rep, 
         dbname="DREAM_daycent", dbformat="csv", parallel='seq', obj_func=None):
@@ -32,10 +35,10 @@ def run_dream(
     os.chdir(wd)
     obs_m = obs_masked()
     # spot_setup = single_setup(GausianLike)
+
+    obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
     spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
-    # spot_setup = spot_setup(GausianLike)
-
     # Select seven chains and set the Gelman-Rubin convergence limit
     delta = 3
     convergence_limit = 1.2
@@ -47,9 +50,12 @@ def run_dream(
     runs_after_convergence = 100
     acceptance_test_option = 6
 
+    # Bayesian algorithms should be run with a likelihood function
+    bayesian_likelihood_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
+
     sampler = spotpy.algorithms.dream(
-        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel
-        )
+        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel,
+        obj_func=bayesian_likelihood_func)
     r_hat = sampler.sample(
         rep,
         nChains,
@@ -63,10 +69,14 @@ def run_dream(
     )
     if dbformat == 'ram':
         results = pd.DataFrame(sampler.getdata())
+        #########################################################
+        # Example plot to show the convergence #################
+        spotpy.analyser.plot_gelman_rubin(results, r_hat, fig_name="DREAM_r_hat.png")
+        ########################################################
         results.to_csv(f"{dbname}.csv", index=False)
 
 
-def run_sceua(wd, pars_df, rep, ngs, parallel='seq'):
+def run_sceua(wd, pars_df, rep, ngs=7, parallel='seq'):
     os.chdir(wd)
     obs_m = obs_masked()
     # spot_setup = spot_setup(GausianLike)
@@ -76,13 +86,10 @@ def run_sceua(wd, pars_df, rep, ngs, parallel='seq'):
     # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
 
     # Select number of maximum allowed repetitions
-    sampler = spotpy.algorithms.sceua(spot_setup, dbname="SCEUA_hymod", dbformat="csv", parallel='mpc')
+    sampler = spotpy.algorithms.sceua(
+        spot_setup, dbname="SCEUA_daycent", dbformat="csv", parallel=parallel)
     # Start the sampler, one can specify ngs, kstop, peps and pcento id desired
     sampler.sample(rep, ngs=ngs, kstop=3, peps=0.1, pcento=0.1)
-
-    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
-    # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
-
 
 
 def obs_masked():

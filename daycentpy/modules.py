@@ -69,21 +69,25 @@ def run_dream(
         spotpy.analyser.plot_gelman_rubin(results02, r_hat, fig_name="DREAM_r_hat.png")
         ########################################################
         
-def run_sceua(wd, pars_df, rep, ngs=7, parallel='seq'):
+def run_sceua(
+        wd, pars_df, rep, ngs=7, 
+        dbname="SCEUA_daycent", dbformat="csv", parallel='seq', obj_func=None):
     os.chdir(wd)
     obs_m = obs_masked()
     # spot_setup = spot_setup(GausianLike)
     spot_setup = single_setup(
-        wd, obs_m, pars_df, parallel=parallel)
+        wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
         # temp_dir=temp_dir
     # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
 
     # Select number of maximum allowed repetitions
     sampler = spotpy.algorithms.sceua(
-        spot_setup, dbname="SCEUA_daycent", dbformat="csv", parallel=parallel)
+        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel)
     # Start the sampler, one can specify ngs, kstop, peps and pcento id desired
     sampler.sample(rep, ngs=ngs, kstop=3, peps=0.1, pcento=0.1)
-
+    if dbformat == 'ram':
+        results = pd.DataFrame(sampler.getdata())
+        results.to_csv(f"{dbname}.csv", index=False)
 
 def obs_masked():
     cali_start, cali_end = get_cali_date()

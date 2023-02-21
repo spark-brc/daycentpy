@@ -33,7 +33,8 @@ def run_dream(
     # spot_setup = single_setup(GausianLike)
 
     # Bayesian algorithms should be run with a likelihood function
-    obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
+    obj_func = spotpy.likelihoods.gaussianLikelihoodHomoHeteroDataError
+    # obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
     spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
     # Select seven chains and set the Gelman-Rubin convergence limit

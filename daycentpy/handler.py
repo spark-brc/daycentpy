@@ -282,7 +282,7 @@ class dc_cali_setup(object):
         with open(data_run_file, "r") as f:
             data = [x.strip().split() for x in f]
         for l, i in enumerate(range(len(data))):
-            if (len(data[i]) != 0) and ((data[i][0]).lower() == "calibration:"):
+            if (len(data[i]) != 0) and ((data[i][0]).lower() == "obs:"):
                 cal_line = l
         cali_dates = data[cal_line][1].split('-')
         return int(cali_dates[0]), int(cali_dates[1])
@@ -437,12 +437,13 @@ class dc_cali_setup(object):
                 inf.write(",".join(map(str, data)) + "\n")
         # os.remove(os.path.join(self.wd, lockfile))
 
+
 def get_cali_date():
     data_run_file = "DayCentRUN.DAT"
     with open(data_run_file, "r") as f:
         data = [x.strip().split() for x in f]
     for l, i in enumerate(range(len(data))):
-        if (len(data[i]) != 0) and ((data[i][0]).lower() == "calibration:"):
+        if (len(data[i]) != 0) and ((data[i][0]).lower() == "obs:"):
             cal_line = l
     cali_dates = data[cal_line][1].split('-')
     return int(cali_dates[0]), int(cali_dates[1])
@@ -458,7 +459,7 @@ def obs_masked():
     for l, i in enumerate(range(len(data))):
         if len(data[i]) == 0:
             mlines = l
-    # mlines indicate only lines for model info
+    # mlines indicate only lines including model info
     for i in range(mlines):
         outf = (data[i][1]+".lis").lower()
         df = pd.read_csv( outf, sep=r'\s+', skiprows=1)
@@ -469,7 +470,7 @@ def obs_masked():
         df_sel.index = pd.date_range(start='1/1/{}'.format(cali_start), periods=len(df_sel), freq='M')
         dfa = df_sel.loc[:, ['somsc']].resample('A').mean()
         dfa.index = dfa.index.year
-        nam_ex = len(data[i][0]) + 1  # length of treatmen
+        nam_ex = len(data[i][0]) + 1  # length of treatment
         dfa.rename(columns = {'somsc':'somsc_'+data[i][1][nam_ex:]}, inplace = True)
         sim_df = pd.concat([sim_df, dfa], axis=1)
 
@@ -487,6 +488,35 @@ def obs_masked():
         tot_df = pd.concat([tot_df, tt], axis=0)
     obd_list = tot_df.loc[:, 'obd'].tolist()
     return obd_list
+
+
+def init_run():
+    with open("DayCentRUN.DAT", "r") as f:
+        data = [x.strip().split() for x in f]
+    print('')
+    print('  **** Initial simulation begins ... ****')
+
+    for l, i in enumerate(range(len(data))):
+        if len(data[i]) == 0:
+            mlines = l
+    # mlines indicate only lines for model info
+    for i in range(mlines):
+        if os.path.isfile(data[i][1]+".bin"):
+            os.remove(data[i][1]+".bin")
+        if len(data[i]) > 2:
+            comline = 'DDcentEVI.exe -s {} -n {} -e {}'.format(data[i][1], data[i][1], data[i][3])
+        else:
+            comline = 'DDcentEVI.exe -s {} -n {}'.format(data[i][1], data[i][1])
+        run_model = subprocess.Popen(comline, cwd=".", stdout=subprocess.DEVNULL)
+    #     run_model = subprocess.Popen(comline, cwd=".")
+        run_model.wait()
+        comline2 = 'DDlist100.exe {} {} {}'.format(data[i][1], data[i][1], 'outvars.txt')
+        # os.system("start cmd {}".format(comline2))
+        extract_model = subprocess.Popen(comline2, cwd=".", stdout=subprocess.DEVNULL)
+        extract_model.wait()
+        print(f"   {data[i][1]} simulation complete ...")
+        print(f"   {data[i][1]} extracting simulation outputs ...")
+    print('  **** Initial simulation ends ... ****')
 
 
 def demo_cali(wd, params, rep, nChains):

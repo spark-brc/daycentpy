@@ -203,7 +203,7 @@ class single_setup(object):
         with open(data_run_file, "r") as f:
             data = [x.strip().split() for x in f]
         for l, i in enumerate(range(len(data))):
-            if (len(data[i]) != 0) and ((data[i][0]).lower() == "calibration:"):
+            if (len(data[i]) != 0) and ((data[i][0]).lower() == "obs:"):
                 cal_line = l
         cali_dates = data[cal_line][1].split('-')
         return int(cali_dates[0]), int(cali_dates[1])

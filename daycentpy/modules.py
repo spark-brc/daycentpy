@@ -26,14 +26,15 @@ def run_fast(
 
 
 def run_dream(
-        wd, pars_df, rep, nChains=10, 
+        wd, pars_df, rep, eps=10e-6, nChains=10, 
         dbname="DREAM_daycent", dbformat="csv", parallel='seq', obj_func=None):
     os.chdir(wd)
     obs_m = obs_masked()
     # spot_setup = single_setup(GausianLike)
 
     # Bayesian algorithms should be run with a likelihood function
-    obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
+    # obj_func = spotpy.likelihoods.NashSutcliffeEfficiencyShapingFactor
+    # obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
     spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
     # Select seven chains and set the Gelman-Rubin convergence limit
@@ -43,7 +44,6 @@ def run_dream(
     # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
     c = 0.1
     nCr = 3
-    eps = 10e-6
     runs_after_convergence = 100
     acceptance_test_option = 6
 

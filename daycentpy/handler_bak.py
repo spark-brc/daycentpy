@@ -2,14 +2,76 @@ import os
 import numpy as np
 import pandas as pd
 import spotpy
-from distutils.dir_util import copy_tree, remove_tree
 import subprocess
+from distutils.dir_util import copy_tree, remove_tree
 import shutil
-from spotpy.objectivefunctions import rmse
+from tqdm import tqdm
+# from modules.tqdm import tqdm
+from termcolor import colored 
+import time
+from pathlib import Path
 
-class single_setup(object):
+
+database_path = os.path.join(
+                    os.path.dirname(os.path.abspath( __file__ )),
+                    'database')
+
+cali_dir = "main"
+multi_cali_dir = "multi_main"
+
+
+class SingleInit(object):
+    def __init__(self, proj_dir, model_dir):
+
+        if not os.path.exists(proj_dir):
+            print("'{}' directory doesn't exist and created in the path '{}' ...")
+            os.mkdir(proj_dir)
+        os.chdir(proj_dir)
+        main_dir = os.path.join(proj_dir,"main")
+
+        if os.path.exists(main_dir):
+            try:
+                shutil.rmtree(main_dir, onerror=_remove_readonly)#, onerror=del_rw)
+            except Exception as e:
+                raise Exception("unable to remove existing worker dir:" + \
+                                "{0}\n{1}".format(main_dir,str(e)))
+            try:
+                shutil.copytree(model_dir, main_dir)
+            except Exception as e:
+                raise Exception("unable to copy files from model dir: " + \
+                                "{0} to new main dir: {1}\n{2}".format(model_dir, main_dir,str(e)))                  
+        else:
+            try:
+                shutil.copytree(model_dir, main_dir)
+            except Exception as e:
+                raise Exception("unable to copy files from model dir: " + \
+                                "{0} to new main dir: {1}\n{2}".format(model_dir, main_dir,str(e)))        
+        org_par_file = "daycent_pars.csv"
+        suffix = ' passed'
+        if os.path.exists(org_par_file):
+            print("    We found DayCent parameter base file.")
+        else:
+            shutil.copy2(os.path.join(database_path, org_par_file), os.path.join(proj_dir, org_par_file))
+            print(f"    '{org_par_file}' file copiped ..." + colored(suffix, 'green'))
+        print("    Open the file and select parameters you are goint to use ..., ")
+        print("    then save it as 'seleted_pars.csv'.")
+
+    def _remove_readonly(self, func, path, excinfo):
+        """remove readonly dirs, apparently only a windows issue
+        add to all rmtree calls: shutil.rmtree(**,onerror=remove_readonly), wk"""
+        os.chmod(path, 128)  # stat.S_IWRITE==128==normal
+        func(path)
+
+    def read_sel_dc_pars(self):
+        df = pd.read_csv('selected_pars.csv')
+        self.sel_df = df.loc[df['select']==1]
+        print(f"You have selected a total of {len(self.sel_df):d} parameters.")
+        return self.sel_df
+
+
+class dc_cali_setup(object):
     def __init__(
-        self, wd, observed_data, pars_df, parallel="seq", obj_func=None
+        self, wd, observed_data, pars_df, parallel="seq", temp_dir=None
         ):
         """_summary_
 
@@ -21,12 +83,15 @@ class single_setup(object):
         """
         # proj_dir = os.getcwd()
         # main_dir = os.path.join(proj_dir,"main")
-        self.obj_func = obj_func
+
         self.curdir = os.getcwd()
         self.wd = wd
         self.observed_data = observed_data
         # wd = parm.path_TxtInout
         os.chdir(wd)
+        dbfile = 'db_results.csv'
+        if os.path.exists(os.path.join(self.wd, dbfile)):
+            os.remove(os.path.join(self.wd, dbfile))
 
         # parameters
         # pars_df = self.read_dc_pars()    
@@ -41,6 +106,7 @@ class single_setup(object):
                         [float(pars_df.iloc[i, 3]), float(pars_df.iloc[i, 4])])))
         
         self.pars_df = pars_df
+        self.temp_dir = temp_dir
         self.parallel = parallel
         if self.parallel == "seq":
             pass
@@ -93,6 +159,7 @@ class single_setup(object):
                 mlines = l
         return mlines
 
+        
     def backup_site_files(self, site_file):
         org_bak_file = site_file + ".org_bak"
         if not os.path.exists(org_bak_file):
@@ -102,6 +169,7 @@ class single_setup(object):
             print("The '{}' file already exists...".format(org_bak_file))
         return org_bak_file
     
+
     def backup_org_cult_file(self, cult_file):
         org_bak_file = cult_file + ".org_bak"
         if not os.path.exists(org_bak_file):
@@ -111,6 +179,7 @@ class single_setup(object):
             print("The '{}' file already exists...".format(org_bak_file))
         return org_bak_file
     
+
     def update_soc_soms_vals(self, updated_df):
         fbm_val = (updated_df.loc[updated_df['name']=='FBM', 'val']).values[0]
         fhp_val = (updated_df.loc[updated_df['name']=='FHP', 'val']).values[0]
@@ -184,9 +253,12 @@ class single_setup(object):
         print(parameters)
         dc_parms = self.pars_df
         dc_parms['val'] = parameters
+        cpars = dc_parms.loc[:, 'val'].tolist()
         self.update_fix_pars(dc_parms)
         self.update_site_pars(dc_parms)
         self.update_soc_soms_vals(dc_parms)
+        return cpars
+
 
     # get info from *.sch file
     def get_start_end_years(self, model_name):
@@ -206,6 +278,7 @@ class single_setup(object):
                 cal_line = l
         cali_dates = data[cal_line][1].split('-')
         return int(cali_dates[0]), int(cali_dates[1])
+
 
     # Simulation function must not return values besides for which evaluation values/observed data are available
     def simulation(self, parameters):
@@ -231,12 +304,14 @@ class single_setup(object):
         # print(self.wd)
         os.chdir(self.wd + call)
         try:
+            os.write(1, "text\n".encode())
             self.update_dc_pars(parameters)
+            # cpars = self.update_dc_pars(parameters)
             # model run
             with open("DayCentRUN.DAT", "r") as f:
                 data = [x.strip().split() for x in f]
-            # print('')
-            # print('  Simulation start ...')
+            print('')
+            print('  Simulation start ...')
 
             for l, i in enumerate(range(len(data))):
                 if len(data[i]) == 0:
@@ -256,10 +331,11 @@ class single_setup(object):
                 # os.system("start cmd {}".format(comline2))
                 extract_model = subprocess.Popen(comline2, cwd=".", stdout=subprocess.DEVNULL)
                 extract_model.wait()       
-            # print('')
-            # print('  Simulation complete ...')
-            # print('')
-            # print('  extracting simulation outputs ...')
+            print('')
+            print('  Simulation complete ...')
+            print('')
+            print('  extracting simulation outputs ...')
+            
             
             # get all sims
             sim_df = pd.DataFrame()
@@ -276,6 +352,7 @@ class single_setup(object):
                 dfa = df_sel.loc[:, ['somsc']].resample('A').mean()
                 dfa.index = dfa.index.year
                 nam_ex = len(data[i][0]) + 1  # length of treatment
+
                 dfa.rename(columns = {'somsc':'somsc_'+data[i][1][nam_ex:]}, inplace = True)
                 sim_df = pd.concat([sim_df, dfa], axis=1)
                 
@@ -299,24 +376,268 @@ class single_setup(object):
         # os.chdir("d:/Projects/Tools/DayCent-CUTE/tools")
         if self.parallel == "mpi" or self.parallel == "mpc":
             remove_tree(self.wd + call)
+
+        # obj_val = self.objf(tot_df)
+        # self.saving_results(obj_val, cpars, sim_list)
+        # print(sim_list)
         return sim_list
     
+
     def evaluation(self):
         return self.observed_data
 
+    def objf(self, tot_df):
+        sims = tot_df.loc[:, 'sim'].tolist()
+        obds = tot_df.loc[:, 'obd'].tolist()
+        obj_val = spotpy.objectivefunctions.nashsutcliffe(
+            obds, sims)
+        return obj_val
+
     # if we want to minimize our function, we can select a negative objective function
     def objectivefunction(self, simulation, evaluation):
-        if not self.obj_func:
-            like = rmse(evaluation, simulation)
+
+        print("simulation")
+        print(len(simulation))
+        print("evaluation")
+        print(len(evaluation))
+
+        objectivefunction = spotpy.objectivefunctions.abs_pbias(
+            evaluation, simulation
+        )
+        return objectivefunction
+
+
+    def saving_results(self, obj_val, cpars, csims):
+        #create dummy file
+        lockfile = 'db_results.locked'
+        dbfile = 'db_results.csv'
+        # while os.path.exists(os.path.join(self.wd, lockfile)):
+        #     time.sleep(10)
+        #     print('waiting ...')
+        # else:
+        #     with open(os.path.join(self.wd, lockfile), 'w') as f:
+        #         f.write('temp ...')
+
+        data = [obj_val] + cpars + csims
+        if os.path.exists(os.path.join(self.wd, dbfile)):
+            with open(os.path.join(self.wd, dbfile), 'a') as inf:
+                # inf.writelines(data + '\n')
+                inf.write(",".join(map(str, data)) + "\n")
+        else: 
+            with open(os.path.join(self.wd, dbfile), 'w') as inf:
+                # inf.writelines(data + '\n')
+                inf.write(",".join(map(str, data)) + "\n")
+        # os.remove(os.path.join(self.wd, lockfile))
+
+
+def _remove_readonly(func, path, excinfo):
+    """remove readonly dirs, apparently only a windows issue
+    add to all rmtree calls: shutil.rmtree(**,onerror=remove_readonly), wk"""
+    os.chmod(path, 128)  # stat.S_IWRITE==128==normal
+    func(path)
+
+
+def get_cali_date():
+    data_run_file = "DayCentRUN.DAT"
+    with open(data_run_file, "r") as f:
+        data = [x.strip().split() for x in f]
+    for l, i in enumerate(range(len(data))):
+        if (len(data[i]) != 0) and ((data[i][0]).lower() == "obs:"):
+            cal_line = l
+    cali_dates = data[cal_line][1].split('-')
+    return int(cali_dates[0]), int(cali_dates[1])
+
+
+def obs_masked():
+    cali_start, cali_end = get_cali_date()
+    # model run
+    with open("DayCentRUN.DAT", "r") as f:
+        data = [x.strip().split() for x in f]
+    sim_df = pd.DataFrame()
+
+    for l, i in enumerate(range(len(data))):
+        if len(data[i]) == 0:
+            mlines = l
+    # mlines indicate only lines including model info
+    for i in range(mlines):
+        outf = (data[i][1]+".lis").lower()
+        df = pd.read_csv( outf, sep=r'\s+', skiprows=1)
+        # daycent time shift
+        cali_sshift = cali_start + .08
+        cali_eshift = cali_end + 1.00
+        df_sel = df.loc[(df['time']>=cali_sshift) & (df['time']<=cali_eshift)]
+        df_sel.index = pd.date_range(start='1/1/{}'.format(cali_start), periods=len(df_sel), freq='M')
+        dfa = df_sel.loc[:, ['somsc']].resample('A').mean()
+        dfa.index = dfa.index.year
+        nam_ex = len(data[i][0]) + 1  # length of treatment
+        dfa.rename(columns = {'somsc':'somsc_'+data[i][1][nam_ex:]}, inplace = True)
+        sim_df = pd.concat([sim_df, dfa], axis=1)
+
+    # get all obds
+    obd_f = "soc_obd.csv"
+    obd_df = pd.read_csv(obd_f).set_index('Year')  
+    obd_df.replace(-999, np.nan, inplace=True)
+
+    # filter only for calibration
+    tot_df = pd.DataFrame()
+    for col in sim_df.columns:
+        tt =  pd.concat([sim_df.loc[:, col], obd_df.loc[:, col]], axis=1).dropna(axis=0)
+        tt.columns = ['sim', 'obd']
+        tt['name'] = col
+        tot_df = pd.concat([tot_df, tt], axis=0)
+    obd_list = tot_df.loc[:, 'obd'].tolist()
+    return obd_list
+
+
+def init_run():
+    with open("DayCentRUN.DAT", "r") as f:
+        data = [x.strip().split() for x in f]
+    print('')
+    print('  **** Initial simulation begins ... ****')
+
+    for l, i in enumerate(range(len(data))):
+        if len(data[i]) == 0:
+            mlines = l
+    # mlines indicate only lines for model info
+    for i in range(mlines):
+        if os.path.isfile(data[i][1]+".bin"):
+            os.remove(data[i][1]+".bin")
+        if len(data[i]) > 2:
+            comline = 'DDcentEVI.exe -s {} -n {} -e {}'.format(data[i][1], data[i][1], data[i][3])
         else:
-            like = self.obj_func(evaluation, simulation)
-        # print("simulation")
-        # print(len(simulation))
-        # print("evaluation")
-        # print(len(evaluation))
+            comline = 'DDcentEVI.exe -s {} -n {}'.format(data[i][1], data[i][1])
+        run_model = subprocess.Popen(comline, cwd=".", stdout=subprocess.DEVNULL)
+    #     run_model = subprocess.Popen(comline, cwd=".")
+        run_model.wait()
+        comline2 = 'DDlist100.exe {} {} {}'.format(data[i][1], data[i][1], 'outvars.txt')
+        # os.system("start cmd {}".format(comline2))
+        extract_model = subprocess.Popen(comline2, cwd=".", stdout=subprocess.DEVNULL)
+        extract_model.wait()
+        print(f"   {data[i][1]} simulation complete ...")
+        print(f"   {data[i][1]} extracting simulation outputs ...")
+    print('  **** Initial simulation ends ... ****')
 
-        # objectivefunction = spotpy.objectivefunctions.abs_pbias(
-        #     evaluation, simulation
-        # )
-        return like
 
+def demo_cali(wd, params, rep, nChains):
+    os.chdir(wd)
+    parallel = "mpc"
+    # df_fix = pd.read_csv('dc_fix.parms.csv')
+    # df_site = pd.read_csv('dc_site.parms.csv')
+    # param_defs = pd.concat([df_fix, df_site], axis=0)
+
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, params, parallel=parallel)
+        # temp_dir=temp_dir
+
+    # Select number of maximum repetitions
+    rep = rep
+
+    # Select seven chains and set the Gelman-Rubin convergence limit
+    delta = 3
+    nChains = nChains
+    convergence_limit = 1.2
+
+    # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
+    c = 0.1
+    nCr = 3
+    eps = 10e-6
+    runs_after_convergence = 2
+    acceptance_test_option = 6
+
+    sampler = spotpy.algorithms.dream(
+        spot_setup, dbname="DREAM_dc_bias", dbformat="ram", parallel=parallel
+    )
+    r_hat = sampler.sample(
+        rep,
+        nChains,
+        nCr,
+        delta,
+        c,
+        eps,
+        convergence_limit,
+        runs_after_convergence,
+        acceptance_test_option,
+    )
+    results = pd.DataFrame(sampler.getdata())
+    results.to_csv('testest.csv')
+    print(os.getcwd())
+
+
+def demo_cali_sql(wd, params, rep, nChains):
+    # for sql
+    os.chdir(wd)
+    parallel = "mpc"
+    # df_fix = pd.read_csv('dc_fix.parms.csv')
+    # df_site = pd.read_csv('dc_site.parms.csv')
+    # param_defs = pd.concat([df_fix, df_site], axis=0)
+
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, params, parallel=parallel)
+        # temp_dir=temp_dir
+
+    # Select number of maximum repetitions
+    rep = rep
+
+    # Select seven chains and set the Gelman-Rubin convergence limit
+    delta = 3
+    nChains = nChains
+    convergence_limit = 1.2
+
+    # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
+    c = 0.1
+    nCr = 3
+    eps = 10e-6
+    runs_after_convergence = 2
+    acceptance_test_option = 6
+
+    sampler = spotpy.algorithms.dream(
+        spot_setup, dbname="DREAM_dc_bias", dbformat="sql", parallel=parallel
+    )
+    r_hat = sampler.sample(
+        rep,
+        nChains,
+        nCr,
+        delta,
+        c,
+        eps,
+        convergence_limit,
+        runs_after_convergence,
+        acceptance_test_option,
+    )
+
+def run_dream(wd, pars_df, parallel, rep, ngs):
+    os.chdir(wd)
+    parallel = "mpc"
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, pars_df, parallel=parallel)
+        # temp_dir=temp_dir
+    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
+
+    # Select number of maximum allowed repetitions
+    sampler = spotpy.algorithms.sceua(spot_setup, dbname="SCEUA_hymod", dbformat="csv", parallel='mpc')
+    # Start the sampler, one can specify ngs, kstop, peps and pcento id desired
+    sampler.sample(rep, ngs=ngs, kstop=3, peps=0.1, pcento=0.1)
+
+    # Load the results gained with the sceua sampler, stored in SCEUA_hymod.csv
+    # results = spotpy.analyser.load_csv_results("SCEUA_hymod")
+
+
+def run_fast(wd, pars_df, parallel, rep):
+    os.chdir(wd)
+    parallel = "mpc"
+    obs_m = obs_masked()
+    # spot_setup = spot_setup(GausianLike)
+    spot_setup = dc_cali_setup(
+        wd, obs_m, pars_df, parallel=parallel)
+        # temp_dir=temp_dir
+    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
+
+    # Select number of maximum allowed repetitions
+    sampler = spotpy.algorithms.fast(spot_setup, dbname="FAST_hymod", dbformat="csv", parallel='mpc')
+    sampler.sample(rep)

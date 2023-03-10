@@ -12,11 +12,8 @@ def run_fast(
         dbname="DREAM_daycent", dbformat="csv", parallel='seq', obj_func=None):
     os.chdir(wd)
     obs_m = obs_masked()
-    # spot_setup = spot_setup(GausianLike)
     spot_setup = single_setup(
         wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
-        # temp_dir=temp_dir
-    # spot_setup = spot_setup(spotpy.objectivefunctions.rmse)
     # Select number of maximum allowed repetitions
     sampler = spotpy.algorithms.fast(
             spot_setup, dbname=dbname, 
@@ -136,7 +133,7 @@ def get_cali_date():
     with open(data_run_file, "r") as f:
         data = [x.strip().split() for x in f]
     for l, i in enumerate(range(len(data))):
-        if (len(data[i]) != 0) and ((data[i][0]).lower() == "calibration:"):
+        if (len(data[i]) != 0) and ((data[i][0]).lower() == "obs:"):
             cal_line = l
     cali_dates = data[cal_line][1].split('-')
     return int(cali_dates[0]), int(cali_dates[1])

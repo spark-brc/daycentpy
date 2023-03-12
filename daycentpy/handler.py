@@ -6,7 +6,6 @@ import subprocess
 from distutils.dir_util import copy_tree, remove_tree
 import shutil
 from tqdm import tqdm
-# from modules.tqdm import tqdm
 from termcolor import colored 
 import time
 from pathlib import Path
@@ -22,7 +21,6 @@ multi_cali_dir = "multi_main"
 
 class SingleInit(object):
     def __init__(self, proj_dir, model_dir):
-
         if not os.path.exists(proj_dir):
             print("'{}' directory doesn't exist and created in the path '{}' ...")
             os.mkdir(proj_dir)
@@ -157,3 +155,53 @@ def init_run():
     print('  **** Initial simulation ends ... ****')
 
 
+class MultiInit(object):
+    def __init__(self, proj_dir, model_dir):
+        if not os.path.exists(proj_dir):
+            print("'{}' directory doesn't exist and created in the path '{}' ...")
+            os.mkdir(proj_dir)
+        os.chdir(proj_dir)
+        main_dir = os.path.join(proj_dir,"multi_main")
+        if os.path.exists(main_dir):
+            try:
+                shutil.rmtree(main_dir, onerror=_remove_readonly)#, onerror=del_rw)
+            except Exception as e:
+                raise Exception("unable to remove existing worker dir:" + \
+                                "{0}\n{1}".format(main_dir,str(e)))
+            try:
+                shutil.copytree(model_dir, main_dir)
+            except Exception as e:
+                raise Exception("unable to copy files from model dir: " + \
+                                "{0} to new main dir: {1}\n{2}".format(model_dir, main_dir,str(e)))                  
+        else:
+            try:
+                shutil.copytree(model_dir, main_dir)
+            except Exception as e:
+                raise Exception("unable to copy files from model dir: " + \
+                                "{0} to new main dir: {1}\n{2}".format(model_dir, main_dir,str(e)))        
+        org_par_file = "daycent_pars.csv"
+        suffix = ' passed'
+        if os.path.exists(org_par_file):
+            print("    We found DayCent parameter base file.")
+        else:
+            shutil.copy2(os.path.join(database_path, org_par_file), os.path.join(proj_dir, org_par_file))
+            print(f"    '{org_par_file}' file copiped ..." + colored(suffix, 'green'))
+        print("    Open the file and select parameters you are goint to use ..., ")
+        print("    then save it as 'seleted_pars.csv'.")
+
+
+
+
+
+    def _remove_readonly(self, func, path, excinfo):
+        """remove readonly dirs, apparently only a windows issue
+        add to all rmtree calls: shutil.rmtree(**,onerror=remove_readonly), wk"""
+        os.chmod(path, 128)  # stat.S_IWRITE==128==normal
+        func(path)
+
+    def read_sel_dc_pars(self):
+        df = pd.read_csv('selected_pars.csv')
+        self.sel_df = df.loc[df['select']==1]
+        print(f"You have selected a total of {len(self.sel_df):d} parameters.")
+        return self.sel_df
+   

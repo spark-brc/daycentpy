@@ -67,12 +67,6 @@ def multi_run_dream(
         ########################################################
 
 
-
-
-
-
-
-
 def run_dream(
         wd, pars_df, rep, eps=10e-6, nChains=10, 
         dbname="DREAM_daycent", dbformat="csv", parallel='seq', obj_func=None):

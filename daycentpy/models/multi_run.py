@@ -334,3 +334,14 @@ class multi_setup(object):
             like = self.obj_func(evaluation, simulation)
         return like
 
+
+
+def cov_obs_obd(obs_dir, md_dir, site_name):
+    os.chdir(obs_dir)
+    soc_df = pd.read_csv(f'soc_{site_name}.csv')
+    soc_columns = soc_df.columns[1:].tolist()
+    soc_df = soc_df.rename(columns={'Yr':'Year'})
+    for i in soc_columns:
+        soc_df = soc_df.rename(columns={i: f"{site_name}_{i}"})
+    os.chdir(os.path.join(md_dir, site_name))
+    soc_df.to_csv('soc_obd.csv', index=False)

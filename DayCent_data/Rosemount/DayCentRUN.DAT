@@ -1,0 +1,15 @@
+Rosemount   Rosemount_NTh_0N
+Rosemount   Rosemount_NTh_200N
+Rosemount   Rosemount_NTr_0N
+Rosemount   Rosemount_NTr_200N
+Rosemount   Rosemount_MBh_0N
+Rosemount   Rosemount_MBh_200N
+Rosemount   Rosemount_MBr_0N
+Rosemount   Rosemount_MBr_200N
+Rosemount   Rosemount_CHh_0N
+Rosemount   Rosemount_CHh_200N
+Rosemount   Rosemount_CHr_0N
+Rosemount   Rosemount_CHr_200N
+
+simulation period: 1980-2002
+obs: 1993-2002

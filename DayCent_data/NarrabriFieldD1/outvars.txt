@@ -1,0 +1,6 @@
+crpval
+somsc
+somtc
+som1c(2)
+som2c(2)
+som3c

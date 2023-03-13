@@ -1,0 +1,219 @@
+X     Archived
+*** Climate parameters
+3.7524            'PRECIP(1)'
+3.1995            'PRECIP(2)'
+2.6662            'PRECIP(3)'
+1.2276            'PRECIP(4)'
+0.6586            'PRECIP(5)'
+0.1667            'PRECIP(6)'
+0.0000            'PRECIP(7)'
+0.0095            'PRECIP(8)'
+0.1133            'PRECIP(9)'
+0.9086            'PRECIP(10)'
+1.4010            'PRECIP(11)'
+2.9619            'PRECIP(12)'
+2.7627            'PRCSTD(1)'
+2.3574            'PRCSTD(2)'
+2.2384            'PRCSTD(3)'
+1.1807            'PRCSTD(4)'
+1.0572            'PRCSTD(5)'
+0.4092            'PRCSTD(6)'
+0.0000            'PRCSTD(7)'
+0.0318            'PRCSTD(8)'
+0.3651            'PRCSTD(9)'
+1.3311            'PRCSTD(10)'
+1.2738            'PRCSTD(11)'
+2.6809            'PRCSTD(12)'
+0.4897            'PRCSKW(1)'
+0.3119            'PRCSKW(2)'
+0.6771            'PRCSKW(3)'
+1.2573            'PRCSKW(4)'
+1.8893            'PRCSKW(5)'
+2.0618            'PRCSKW(6)'
+0.0000            'PRCSKW(7)'
+3.4410            'PRCSKW(8)'
+3.8401            'PRCSKW(9)'
+2.0864            'PRCSKW(10)'
+0.8585            'PRCSKW(11)'
+0.6879            'PRCSKW(12)'
+2.8444            'TMN2M(1)'
+4.0567            'TMN2M(2)'
+5.8430            'TMN2M(3)'
+7.8192            'TMN2M(4)'
+11.3015           'TMN2M(5)'
+14.6310           'TMN2M(6)'
+17.3269           'TMN2M(7)'
+16.6191           'TMN2M(8)'
+14.2301           'TMN2M(9)'
+9.8623            'TMN2M(10)'
+5.0223            'TMN2M(11)'
+2.4529            'TMN2M(12)'
+13.4304           'TMX2M(1)'
+16.5687           'TMX2M(2)'
+20.0895           'TMX2M(3)'
+23.1862           'TMX2M(4)'
+28.0106           'TMX2M(5)'
+32.5426           'TMX2M(6)'
+35.3311           'TMX2M(7)'
+34.6553           'TMX2M(8)'
+32.0633           'TMX2M(9)'
+26.1872           'TMX2M(10)'
+18.9720           'TMX2M(11)'
+13.7751           'TMX2M(12)'
+*** Site and control parameters
+0.0               IVAUTO
+1.                NELEM     # Number of elements (besides C) to be simulated: 1 = simulate N only 
+36.3400           SITLAT    
+-120.1200         SITLNG    
+9.0000            NLAYER    
+9.0000            NLAYPG    
+0.95                DRAIN       
+0.3               BASEF       
+0.00000           STORMF     ## This parameter is not used by DayCent   
+8.00000           'PRECRO'   ## Used by monthly Century only 
+0.15000           'FRACRO'   ## Used by monthly Century only 
+0.00000           SWFLAG     # SWFLAG is always 0 in DayCent, Values of field capacity and wilting point are always read from soils.in.
+1.                PSLSRB     # Slope term which controls the fraction of mineral P that is labile 
+5.                SORPMX     # Maximum P sorption potential for a soil 
+*** External nutrient input parameters
+0.3               EPNFA(1) # 0.21 9/1/11 billp #Intercept value for determining the effect of annual preci on atmospheric N fixation(wet and dry depos)
+0.015             EPNFA(2) # 0.0028 9/1/11 billp # slope.... 
+30.0000           EPNFS(1)   #Intercept value for determining the effect of annual precipitation on atmospheric N fixation (wet and dry...
+0.01000           EPNFS(2)    
+0.0               SATMOS(1)   # Intercept value for atmospheric S inputs as a linear...
+0.0               SATMOS(2)   # S
+0.0               SIRRI       # S
+*** Organic matter initial values; Initial Soil Organic Matter Pools
+ 25.3797       SOM1CI(1,1)
+ 0.0           SOM1CI(1,2)
+ 59.73       SOM1CI(2,1)
+ 0.0           SOM1CI(2,2)
+ 119.516       SOM2CI(1,1)
+ 0.0           SOM2CI(1,2)
+ 579.38      SOM2CI(2,1)
+ 0.0           SOM2CI(2,2)
+ 1351.88      SOM3CI(1)
+ 0.0           SOM3CI(2)
+ 12.6741       RCES1(1,1)
+ 70.7721       RCES1(1,2)
+ 70.7721       RCES1(1,3)
+ 12.7037       RCES1(2,1)   #
+ 54.8834       RCES1(2,2)
+ 54.8834       RCES1(2,3)
+ 18.1981       RCES2(1,1)
+ 345.089       RCES2(1,2)
+ 230.059       RCES2(1,3)
+ 18.8984       RCES2(2,1)   #
+ 312.205       RCES2(2,2)
+ 208.137       RCES2(2,3)
+ 7.80058       RCES3(1)     #
+ 55.5954       RCES3(2)
+ 55.5954       RCES3(3)
+ 126.097       CLITTR(1,1)
+ 0.0           CLITTR(1,2)
+ 108.665       CLITTR(2,1)
+ 0.0           CLITTR(2,2)
+ 161.8         RCELIT(1,1)
+ 0.0           RCELIT(1,2)
+ 0.0           RCELIT(1,3)
+ 58.1424       RCELIT(2,1)
+ 0.0           RCELIT(2,2)
+ 0.0           RCELIT(2,3)
+ 2.87785       AGLCIS(1)
+ 0.0           AGLCIS(2)
+ 0.0442377     AGLIVE(1)
+ 0.0           AGLIVE(2)
+ 0.0           AGLIVE(3)
+ 226.796       BGLCIS(1)
+ 0.0           BGLCIS(2)
+ 3.7806        BGLIVE(1)
+ 0.25          BGLIVE(2)
+ 0.25          BGLIVE(3)
+ 61.2353       STDCIS(1)
+ 0.0           STDCIS(2)
+ 0.384         STDEDE(1)
+ 0.3           STDEDE(2)
+ 0.3           STDEDE(3)
+ *** Forest organic matter initial parameters
+0.0               RLVCIS(1)   
+0.0               RLVCIS(2)   
+0.0               RLEAVE(1)   
+0.0               RLEAVE(2)   
+0.0               RLEAVE(3)   
+0.0               FBRCIS(1)   
+0.0               FBRCIS(2)   
+0.0               FBRCHE(1)   
+0.0               FBRCHE(2)   
+0.0               FBRCHE(3)   
+0.0               RLWCIS(1)   
+0.0               RLWCIS(2)   
+0.0               RLWODE(1)   
+0.0               RLWODE(2)   
+0.0               RLWODE(3)   
+0.0               FRTCIS(1)   
+0.0               FRTCIS(2)   
+0.0               FROOTE(1)   
+0.0               FROOTE(2)   
+0.0               FROOTE(3)   
+0.0               CRTCIS(1)   
+0.0               CRTCIS(2)   
+0.0               CROOTE(1)   
+0.0               CROOTE(2)   
+0.0               CROOTE(3)   
+0.0               WD1CIS(1)   
+0.0               WD1CIS(2)   
+0.0               WD2CIS(1)   
+0.0               WD2CIS(2)   
+0.0               WD3CIS(1)   
+0.0               WD3CIS(2)   
+*** Mineral initial parameters; Initial Soil Mineral pools
+1.3052            MINERL(1,1)  Mineral N in soil layer 1
+0.529087          MINERL(2,1)  Mineral N in soil layer 2
+0.143908          MINERL(3,1)  Mineral N in soil layer 3
+0.0318495         MINERL(4,1)  Mineral N in soil layer 4
+0.00675335        MINERL(5,1)  Mineral N in soil layer 5
+6.95933E-4        MINERL(6,1)  Mineral N in soil layer 6
+1.19405E-5        MINERL(7,1)  Mineral N in soil layer 7
+0.0               MINERL(8,1) 
+0.0               MINERL(9,1) 
+0.0               MINERL(10,1)
+0.5               MINERL(1,2)  Mineral P in soil layer 1
+0.0               MINERL(2,2) 
+0.0               MINERL(3,2) 
+0.0               MINERL(4,2) 
+0.0               MINERL(5,2) 
+0.0               MINERL(6,2) 
+0.0               MINERL(7,2) 
+0.0               MINERL(8,2) 
+0.0               MINERL(9,2) 
+0.0               MINERL(10,2)
+0.5               MINERL(1,3)  Mineral S in soil layer 1
+0.0               MINERL(2,3) 
+0.0               MINERL(3,3) 
+0.0               MINERL(4,3) 
+0.0               MINERL(5,3) 
+0.0               MINERL(6,3) 
+0.0               MINERL(7,3) 
+0.0               MINERL(8,3) 
+0.0               MINERL(9,3) 
+0.0               MINERL(10,3)
+0.0               PARENT(1)     Mineral N in parent material
+50.               PARENT(2)     Mineral P in parent material
+50.               PARENT(3)     Mineral S in parent material
+0.0               SECNDY(1)   
+15.               SECNDY(2)   
+2.                SECNDY(3)   
+0.0               OCCLUD      
+*** Water initial parameters
+0.999708          RWCF(1)     #this parameter is no longer used to initialize soil water content (swc) for a new run.
+0.999781          RWCF(2)     
+0.999854          RWCF(3)     
+0.999891          RWCF(4)     
+0.999927          RWCF(5)     
+0.999927          RWCF(6)     
+0.0               RWCF(7)     
+0.0               RWCF(8)     
+0.0               RWCF(9)     
+0.0               RWCF(10)    
+0.0               SNLQ        
+0.0               SNOW        

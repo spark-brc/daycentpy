@@ -1,0 +1,38 @@
+0          / usexdrvrs      - 0 = no extra drivers, 1 = PET drivers, 4 - EVI (not implemented 2 = psyn drivers, 3 = both)
+1          / sublimscale
+0.18       / reflec            - vegetation reflectivity (frac) hardwoods = 0.20 spruce = 0.10
+0.65       / albedo            - snow albedo (frac)
+0.000001   / dmpflux
+10         / hours_rain        - duration of each rain event
+0          / drainlag          - # of days between rainfall event and drainage of soil (-1=computed)
+-200       / hpotdeep          - hydraulic water potential of deep storage layer (units?)
+0.0003     / ksatdeep          - saturated hydraulic conductivity of deep storage layer (cm/sec)
+0.0 12.4   / tbotmn tbotmx     - min and max temperature for bottom soil layer (degrees C)
+0.001187   / dmp
+30.0       / timlag            - days from Jan 1 to coolest temp at bottom of soil (days)
+0.03       / Ncoeff            - min water/temperature limitation coefficient for nitrify
+0 0        / jdayStart jdayEnd - turn off respiration restraint on denit between these Julian dates
+0.013726   / N2Oadjust_fc
+0.024948   / N2Oadjust_wp
+1.5        / MaxNitAmt         - maximum daily nitrification amount (gN/m^2) 
+1          / SnowFlag          - snow insulation effect on soil surface temp: 0 = not insulating, 1 = insulating
+0.2        / netmn_to_no3      - fraction of new net mineralization that goes to NO3 (0.0-1.0)
+1.0        / wfpsdnitadj       - adjustment on inflection point for WFPS effect on denit
+1.986588   / N2N2Oadj
+288        / elevation         - elevation, meters Arlington,WI
+0.57        / slope             - site slope, degrees  #0.01 m/m
+0.0        / aspect            - site aspect, degrees
+0.0        / ehoriz            - site east horizon, degrees
+0.0        / whoriz            - site west horizon, degrees
+0.42       / sradadj[1]        - solar radiation surface transmission
+0.50       / sradadj[2]        - solar radiation surface transmission
+0.53       / sradadj[3]        - solar radiation surface transmission
+0.57       / sradadj[4]        - solar radiation surface transmission
+0.62       / sradadj[5]        - solar radiation surface transmission
+0.69       / sradadj[6]        - solar radiation surface transmission
+0.71       / sradadj[7]        - solar radiation surface transmission
+0.66       / sradadj[8]        - solar radiation surface transmission
+0.58       / sradadj[9]        - solar radiation surface transmission
+0.52       / sradadj[10]       - solar radiation surface transmission
+0.46       / sradadj[11]       - solar radiation surface transmission
+0.45       / sradadj[12]       - solar radiation surface transmission

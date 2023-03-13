@@ -45,7 +45,7 @@ def multi_run_dream(
     acceptance_test_option = 6
 
     sampler = spotpy.algorithms.dream(
-        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel)
+        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel, dbappend=True)
     r_hat = sampler.sample(
         rep,
         nChains,
@@ -96,7 +96,7 @@ def run_dream(
     acceptance_test_option = 6
 
     sampler = spotpy.algorithms.dream(
-        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel)
+        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel, dbappend=True)
     r_hat = sampler.sample(
         rep,
         nChains,

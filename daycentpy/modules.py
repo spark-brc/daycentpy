@@ -2,7 +2,8 @@ import os
 import spotpy
 import pandas as pd
 import numpy as np
-from daycentpy.models import single_setup
+from daycentpy.models.single_run import single_setup
+from daycentpy.models.multi_run import multi_setup
 from spotpy.objectivefunctions import rmse
 from spotpy.likelihoods import gaussianLikelihoodMeasErrorOut as GausianLike
 
@@ -20,6 +21,56 @@ def run_fast(
             dbformat=dbformat, parallel=parallel
             )
     sampler.sample(rep)
+
+
+def multi_run_dream(
+        wd, obs_m, pars_df, rep, eps=10e-6, nChains=10, 
+        dbname="DREAM_daycent", dbformat="csv", parallel='seq', obj_func=None):
+    os.chdir(wd)
+    # spot_setup = single_setup(GausianLike)
+
+    # Bayesian algorithms should be run with a likelihood function
+    # obj_func = spotpy.likelihoods.NashSutcliffeEfficiencyShapingFactor
+    # obj_func = spotpy.likelihoods.gaussianLikelihoodMeasErrorOut
+    spot_setup = multi_setup(
+        wd, obs_m, pars_df, parallel=parallel, obj_func=obj_func)
+    # Select seven chains and set the Gelman-Rubin convergence limit
+    delta = 3
+    convergence_limit = 1.2
+
+    # Other possible settings to modify the DREAM algorithm, for details see Vrugt (2016)
+    c = 0.1
+    nCr = 3
+    runs_after_convergence = 100
+    acceptance_test_option = 6
+
+    sampler = spotpy.algorithms.dream(
+        spot_setup, dbname=dbname, dbformat=dbformat, parallel=parallel)
+    r_hat = sampler.sample(
+        rep,
+        nChains,
+        nCr,
+        delta,
+        c,
+        eps,
+        convergence_limit,
+        runs_after_convergence,
+        acceptance_test_option,
+    )
+    if dbformat == 'ram':
+        results = pd.DataFrame(sampler.getdata())
+        results.to_csv(f"{dbname}.csv", index=False)
+        #########################################################
+        # Example plot to show the convergence #################
+        results02 = spotpy.analyser.load_csv_results(f"{dbname}")
+        spotpy.analyser.plot_gelman_rubin(results02, r_hat, fig_name="DREAM_r_hat.png")
+        ########################################################
+
+
+
+
+
+
 
 
 def run_dream(

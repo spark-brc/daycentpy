@@ -68,7 +68,7 @@ class multi_setup(object):
                     updated.append(line)
         with open('fix.100', "w") as wf:
             wf.writelines(updated)
-        print('  fix pars updated ...')
+        # print('  fix pars updated ...')
 
     def update_site_pars(self, updated_df):
         site_pars_df = updated_df.loc[updated_df['category']=='site']
@@ -84,7 +84,7 @@ class multi_setup(object):
                     updated.append(line)
         with open('sitepar.in', "w") as wf:
             wf.writelines(updated)
-        print('  site pars updated ...')
+        # print('  site pars updated ...')
 
     def find_site_file(self):
         with open("DayCentRUN.DAT", "r") as f:
@@ -98,9 +98,9 @@ class multi_setup(object):
         org_bak_file = site_file + ".org_bak"
         if not os.path.exists(org_bak_file):
             shutil.copy(site_file, org_bak_file)
-            print('The original site file "{}" has been backed up...'.format(site_file))
-        else:
-            print("The '{}' file already exists...".format(org_bak_file))
+            # print('The original site file "{}" has been backed up...'.format(site_file))
+        # else:
+        #     print("The '{}' file already exists...".format(org_bak_file))
         return org_bak_file
     
     def backup_org_cult_file(self, cult_file):
@@ -108,8 +108,8 @@ class multi_setup(object):
         if not os.path.exists(org_bak_file):
             shutil.copy(cult_file, org_bak_file)
             print('The original site file "{}" has been backed up...'.format(cult_file))
-        else:
-            print("The '{}' file already exists...".format(org_bak_file))
+        # else:
+        #     print("The '{}' file already exists...".format(org_bak_file))
         return org_bak_file
     
     def update_soc_soms_vals(self, updated_df):
@@ -178,7 +178,7 @@ class multi_setup(object):
                     data[i+11] = f"{culteff:<18.4f}{data[i+11].split()[1]}\n"
         with open(cult_file, 'w') as wcfile:
             wcfile.writelines(data)
-        print('  cult par and CLTEFF values updated ...')
+        # print('  cult par and CLTEFF values updated ...')
 
     def update_dc_pars(self, parameters):
         print(f"this iteration's parameters:")

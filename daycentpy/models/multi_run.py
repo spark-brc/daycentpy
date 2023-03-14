@@ -88,10 +88,13 @@ class multi_setup(object):
 
     def find_site_file(self):
         with open("DayCentRUN.DAT", "r") as f:
-            data = [x.strip().split() for x in f]        
+            data = [x.strip().split() for x in f]  
+        mlines = []
         for l, i in enumerate(range(len(data))):
             if len(data[i]) == 0:
-                mlines = l
+                mlines.append(l)
+        # mlines indicate only lines for model info
+        mlines = mlines[0]
         return mlines
 
     def backup_site_files(self, site_file):
@@ -117,6 +120,7 @@ class multi_setup(object):
         fhp_val = (updated_df.loc[updated_df['name']=='FHP', 'val']).values[0]
         with open("DayCentRUN.DAT", "r") as f:
             data = [x.strip().split() for x in f]
+        
         for i in range(self.find_site_file()):
             # find sch file
             sch_file = data[i][1] + ".sch"
@@ -156,7 +160,7 @@ class multi_setup(object):
                         updated_lines.append(line)
             with open(site_file, 'w') as wsfile:
                 wsfile.writelines(updated_lines)
-        print('  FBM and FHP pars, and somc values updated ...')
+        # print('  FBM and FHP pars, and somc values updated ...')
 
     def update_cult_pars(self, updated_df):
         teff_val = (updated_df.loc[updated_df['name']=='Till_Eff', 'val']).values[0]
@@ -243,6 +247,7 @@ class multi_setup(object):
         try:
             site_list = self.get_sites()
             for st in site_list:
+                print(st)
                 os.chdir(os.path.join(self.main_dir_call, st))
                 self.update_dc_pars(parameters)
            

@@ -198,6 +198,12 @@ class MultiInit(object):
         print("    Open the file and select parameters you are goint to use ..., ")
         print("    then save it as 'seleted_pars.csv'.")
 
+    def k_fold_setup(self, k=5):
+        site_num = len(os.listdir(self.main_dir))
+        np.random.choice([0, 1], size=(site_num,), p=[1./k, 4./k])
+
+
+
 
     def _remove_readonly(self, func, path, excinfo):
         """remove readonly dirs, apparently only a windows issue

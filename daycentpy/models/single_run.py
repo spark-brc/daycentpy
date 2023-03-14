@@ -155,7 +155,7 @@ class single_setup(object):
                         updated_lines.append(line)
             with open(site_file, 'w') as wsfile:
                 wsfile.writelines(updated_lines)
-        print('  FBM and FHP pars, and somc values updated ...')
+        # print('  FBM and FHP pars, and somc values updated ...')
 
     def update_cult_pars(self, updated_df):
         teff_val = (updated_df.loc[updated_df['name']=='Till_Eff', 'val']).values[0]
